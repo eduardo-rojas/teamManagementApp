@@ -16,7 +16,7 @@ public class CapabilityService {
         this.capabilityRepository = capabilityRepository;
     }
 
-    public List<Capability> getAllCapabilitier(){
+    public List<Capability> getAllCapabilities(){
         return capabilityRepository.findAll();
     }
     public Capability findCapById(Long id){
