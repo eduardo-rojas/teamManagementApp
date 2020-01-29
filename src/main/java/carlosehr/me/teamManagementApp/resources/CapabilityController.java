@@ -1,9 +1,13 @@
 package carlosehr.me.teamManagementApp.resources;
 
+import carlosehr.me.teamManagementApp.assembler.CapabilityResourceAssembler;
 import carlosehr.me.teamManagementApp.domain.Capability;
 import carlosehr.me.teamManagementApp.service.CapabilityService;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.Link;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,29 +26,26 @@ public class CapabilityController {
 
     private CapabilityService capabilityService;
 
-    public CapabilityController(CapabilityService capabilityService) {
+    private CapabilityResourceAssembler assembler;
+
+    public CapabilityController(CapabilityService capabilityService, CapabilityResourceAssembler assembler) {
         this.capabilityService = capabilityService;
+        this.assembler = assembler;
     }
 
     @GetMapping
     public CollectionModel<EntityModel<Capability>> getAllCapabilities(){
 
-        List<EntityModel<Capability>> capabilities = capabilityService.getAllCapabilities().stream()
-                .map(capability -> new EntityModel<>(capability,
-                        linkTo(methodOn(CapabilityController.class).getCapability(capability.getId())).withRel("getThisCapability"),
-                        linkTo(methodOn(CapabilityController.class).getAllCapabilities()).withRel("getAllCapabilities")
-                )).collect(Collectors.toList());
-
-        return new CollectionModel<>(capabilities);
-
+        return new CollectionModel<>(capabilityService.getAllCapabilities().stream()
+                .map(capability -> assembler.toModel(capability)).collect(Collectors.toList()),
+                new Link("http://localhost:8080/dashboard").withRel("createCapability")
+        );
     }
 
     @GetMapping("/{id}")
     public EntityModel<?> getCapability(@PathVariable Long id){
-        Capability capability = capabilityService.findCapById(id);
 
-        return new EntityModel<>(capability,
-                linkTo(methodOn(CapabilityController.class).getCapability(id)).withRel("getThisCapability"));
+        return assembler.toModel(capabilityService.findCapById(id));
     }
 
     @PostMapping
@@ -52,25 +53,25 @@ public class CapabilityController {
 
         if(result.hasErrors()) return capabilityService.errorMap(result);
 
-        Capability newCapability = capabilityService.saveCapability(capability);
-
-        return new EntityModel<>(capability,
-                linkTo(methodOn(CapabilityController.class).getCapability(newCapability.getId())).withRel("getThisCapability"),
-                linkTo(methodOn(CapabilityController.class).getAllCapabilities()).withRel("getAllCapabilities"));
-
+        return new EntityModel<>(assembler.toModel(capabilityService.saveCapability(capability)));
 
     }
 
     @PutMapping("/{id}")
     public Object updateCapability(@PathVariable Long id, @Valid @RequestBody Capability capability, BindingResult result){
+
         if(result.hasErrors()) return capabilityService.errorMap(result);
 
-        Capability capabilityToUpdate = capabilityService.updateCapability(id,capability);
+        return new EntityModel<>(assembler.toModel(capabilityService.updateCapability(id,capability)));
+    }
 
-        return new EntityModel<>(capabilityToUpdate,
-                linkTo(methodOn(CapabilityController.class).getCapability(capabilityToUpdate.getId())).withRel("getThisCapability"),
-                linkTo(methodOn(CapabilityController.class).getAllCapabilities()).withRel("getAllCapabilities")
-        );
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteCapability(@PathVariable Long id){
+
+        capabilityService.deleteCapability(id);
+
+        return new ResponseEntity<String>("Capability Deleted", HttpStatus.OK);
     }
 
 }
