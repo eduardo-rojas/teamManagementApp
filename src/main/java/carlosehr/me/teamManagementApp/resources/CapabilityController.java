@@ -4,8 +4,10 @@ import carlosehr.me.teamManagementApp.domain.Capability;
 import carlosehr.me.teamManagementApp.service.CapabilityService;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,7 +48,9 @@ public class CapabilityController {
     }
 
     @PostMapping
-    public Object createCapability(@RequestBody Capability capability){
+    public Object createCapability(@Valid @RequestBody Capability capability, BindingResult result){
+
+        if(result.hasErrors()) return capabilityService.errorMap(result);
 
         Capability newCapability = capabilityService.saveCapability(capability);
 
@@ -56,4 +60,17 @@ public class CapabilityController {
 
 
     }
+
+    @PutMapping("/{id}")
+    public Object updateCapability(@PathVariable Long id, @Valid @RequestBody Capability capability, BindingResult result){
+        if(result.hasErrors()) return capabilityService.errorMap(result);
+
+        Capability capabilityToUpdate = capabilityService.updateCapability(id,capability);
+
+        return new EntityModel<>(capabilityToUpdate,
+                linkTo(methodOn(CapabilityController.class).getCapability(capabilityToUpdate.getId())).withRel("getThisCapability"),
+                linkTo(methodOn(CapabilityController.class).getAllCapabilities()).withRel("getAllCapabilities")
+        );
+    }
+
 }
