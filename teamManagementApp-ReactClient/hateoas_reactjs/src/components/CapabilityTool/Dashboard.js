@@ -15,7 +15,6 @@ class Dashboard extends Component {
     return (
       <React.Fragment>
         <AddButton />
-
         {capabilities.map(capability => (
           <Capability key={capability.id} capability={capability} />
         ))}
@@ -25,7 +24,7 @@ class Dashboard extends Component {
 }
 
 Dashboard.propTypes = {
-  getCapabilities: PropTypes.func.isRequired,
+  getAllCapabilities: PropTypes.func.isRequired,
   capabilities: PropTypes.array.isRequired
 };
 
