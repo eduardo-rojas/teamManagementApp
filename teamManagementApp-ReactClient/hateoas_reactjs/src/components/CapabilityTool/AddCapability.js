@@ -36,6 +36,8 @@ export class AddCapability extends Component {
     if (nextProps.errors !== prevState.errors) {
       return { errors: nextProps.errors };
     }
+
+    return null;
   }
 
   render() {

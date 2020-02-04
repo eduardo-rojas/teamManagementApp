@@ -1,7 +1,45 @@
 import React, { Component } from "react";
 import classnames from "classnames";
+import PropTypes from "prop-types";
+import { connect } from "react-redux";
+import { getCapabilityById } from "../../actions/CapabilityActions";
 
 export class UpdateCapability extends Component {
+  state = {
+    id: "",
+    techStack: "",
+    numOfDevelopers: "",
+    numOfAvailableDevelopers: "",
+    _links: "",
+    errors: {}
+  };
+
+  onChange = e => {
+    this.setState({ [e.tartget.name]: e.target.value });
+  };
+
+  componentWillMount() {
+    this.props.getCapabilityById(this.props.id);
+  }
+
+  UNSAFE_componentWillReceiveProps(nextProps) {
+    const {
+      id,
+      techStack,
+      numOfDevelopers,
+      numOfAvailableDevelopers,
+      _links
+    } = nextProps.capability;
+
+    this.setState({
+      id,
+      techStack,
+      numOfDevelopers,
+      numOfAvailableDevelopers,
+      _links
+    });
+  }
+
   render() {
     const errors = {};
     return (
@@ -16,10 +54,11 @@ export class UpdateCapability extends Component {
               <input
                 type="text"
                 name="techStack"
-                value=""
+                value={this.state.techStack}
                 className={classnames("form-control form-control-lg", {
                   "is-invalid": errors.techStack
                 })}
+                onChange={this.onChange}
               />
               {errors.techStack && (
                 <div className="invalid-feedback">{errors.techStack}</div>
@@ -32,8 +71,9 @@ export class UpdateCapability extends Component {
               <input
                 type="text"
                 name="numOfDevelopers"
-                value=""
+                value={this.state.numOfDevelopers}
                 className="form-control form-control-lg"
+                onChange={this.onChange}
               />
             </div>
             <div className="form-group">
@@ -43,8 +83,9 @@ export class UpdateCapability extends Component {
               <input
                 type="text"
                 name="numOfAvailableDevelopers"
-                value=""
+                value={this.state.numOfAvailableDevelopers}
                 className="form-control form-control-lg"
+                onChange={this.onChange}
               />
             </div>
             <input
@@ -59,4 +100,16 @@ export class UpdateCapability extends Component {
   }
 }
 
-export default UpdateCapability;
+UpdateCapability.proptypes = {
+  getCapabilityById: PropTypes.func.isRequired,
+  errors: PropTypes.object.isRequired
+};
+
+const mapStateToProps = state => ({
+  capability: state.capability.capability,
+  errors: state.errors
+});
+
+export default connect(mapStateToProps, { getCapabilityById })(
+  UpdateCapability
+);
